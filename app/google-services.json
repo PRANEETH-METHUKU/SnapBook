@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1035614912583",
+    "project_id": "snapbook-72094",
+    "storage_bucket": "snapbook-72094.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1035614912583:android:a9f61e3e79a3dddb3a3162",
+        "android_client_info": {
+          "package_name": "com.praneeth.snapbook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZBtSfz_5QyPr_1LZWKhIfPSYUnKRIkQk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
