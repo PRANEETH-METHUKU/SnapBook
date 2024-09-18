@@ -70,4 +70,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.2.0"))
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("androidx.activity:activity-compose:1.9.2") // For handling image picker
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.5") // Lifecycle support
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }

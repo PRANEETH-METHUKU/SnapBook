@@ -1,12 +1,19 @@
 package com.praneeth.snapbook
 
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,11 +38,17 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.praneeth.snapbook.ui.theme.SnapBookTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,10 +72,14 @@ data class Post(
     val id: String = "",
     val content: String = "",
     val timestamp: Long = System.currentTimeMillis(),
-//    val imageUrl: String? = null
+    val imageUrl: String? = null
 )
 
-
+fun Long.convertMilliSecondsToDate(): String {
+    val date = Date(this)
+    val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH)
+    return format.format(date)
+}
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
@@ -124,11 +141,16 @@ fun PostListScreen(onFabClick: () -> Unit) {
 fun PostItem(post: Post) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = post.content)
-//        if (post.imageUrl != null) {
-//            // Load image using Coil or any other image loading library
-//            // Image(painter = rememberImagePainter(post.imageUrl), contentDescription = "Post Image")
-//        }
-        Text(text = "Posted at: ${post.timestamp}")
+        if (post.imageUrl != null) {
+            Image(
+                painter = rememberAsyncImagePainter(post.imageUrl),
+                contentDescription = "Post Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            )
+        }
+        Text(text = "Posted at: ${post.timestamp.convertMilliSecondsToDate()}")
     }
 }
 
@@ -136,32 +158,57 @@ fun PostItem(post: Post) {
 fun UploadPostScreen(onPostUploaded: () -> Unit) {
     val content = remember { mutableStateOf("") }
     val context = LocalContext.current
-    val imageUrl = remember { mutableStateOf<String?>(null) }
+    val imageUri = remember { mutableStateOf<Uri?>(null) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri.value = uri
+    }
 
     Column(
         modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         TextField(value = content.value, onValueChange = { content.value = it }, label = { Text("Content") })
-        Button(onClick = { /* Select Image from gallery and upload to Firebase Storage */ }) {
-            Text("Upload Image")
+
+        Button(onClick = { launcher.launch("image/*") }) {
+            Text("Select Image")
         }
+
         Button(onClick = {
-            val post = Post(content = content.value)
-//            val post = Post(content = content.value, imageUrl = imageUrl.value)
-            Firebase.firestore.collection("posts")
-                .add(post)
-                .addOnSuccessListener {
-                    onPostUploaded()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(context, "Failed to upload post", Toast.LENGTH_SHORT).show()
-                }
+            imageUri.value?.let { uri ->
+                uploadImageToFirebaseStorage(uri, onPostUploaded, content.value, context)
+            } ?: Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
         }) {
             Text("Submit Post")
         }
     }
 }
+
+private fun uploadImageToFirebaseStorage(uri: Uri, onPostUploaded: () -> Unit, content: String, context: Context) {
+    Toast.makeText(context, "uri + $uri", Toast.LENGTH_SHORT).show()
+    val storageRef = Firebase.storage.reference.child("images/${System.currentTimeMillis()}.jpg")
+
+    storageRef.putFile(uri)
+        .addOnSuccessListener {
+            storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                val post = Post(content = content, imageUrl = downloadUri.toString())
+                Firebase.firestore.collection("posts")
+                    .add(post)
+                    .addOnSuccessListener {
+                        onPostUploaded()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(context, "Failed to upload post ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+            }
+        }
+        .addOnFailureListener {
+            Toast.makeText(context, "Failed to upload image ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }
+}
+
+
 
 
 
