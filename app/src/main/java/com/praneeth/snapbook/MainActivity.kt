@@ -45,6 +45,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
+import com.praneeth.snapbook.ui.screens.MainApp
 import com.praneeth.snapbook.ui.theme.SnapBookTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -67,154 +68,141 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-data class Post(
-    val id: String = "",
-    val content: String = "",
-    val timestamp: Long = System.currentTimeMillis(),
-    val imageUrl: String? = null
-)
-
-fun Long.convertMilliSecondsToDate(): String {
-    val date = Date(this)
-    val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH)
-    return format.format(date)
-}
-@Composable
-fun MainApp() {
-    val navController = rememberNavController()
-
-    NavHost(navController, startDestination = "postList") {
-        composable("postList") {
-            // Fetch posts code here
-            PostListScreen()
-            {
-                navController.navigate("uploadPost")
-            }
-        }
-        composable("uploadPost") {
-            UploadPostScreen {
-                navController.popBackStack()
-            }
-        }
-    }
-}
-
-@Composable
-fun PostListScreen(onFabClick: () -> Unit) {
-    val posts = remember { mutableStateOf<List<Post>>(emptyList()) }
-
-    // Fetch posts from Firebase
-    LaunchedEffect(Unit) {
-        val db = Firebase.firestore
-        db.collection("posts")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    // Handle error
-                    return@addSnapshotListener
-                }
-                val fetchedPosts = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Post::class.java)?.copy(id = doc.id)
-                } ?: emptyList()
-                posts.value = fetchedPosts
-            }
-    }
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = onFabClick) {
-                Icon(Icons.Default.Add, contentDescription = "Add Post")
-            }
-        }
-    ) {
-        LazyColumn(modifier = Modifier.padding(it)) {
-            items(posts.value) { post ->
-                PostItem(post)
-            }
-        }
-    }
-}
-
-
-@Composable
-fun PostItem(post: Post) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = post.content)
-        if (post.imageUrl != null) {
-            Image(
-                painter = rememberAsyncImagePainter(post.imageUrl),
-                contentDescription = "Post Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            )
-        }
-        Text(text = "Posted at: ${post.timestamp.convertMilliSecondsToDate()}")
-    }
-}
-
-@Composable
-fun UploadPostScreen(onPostUploaded: () -> Unit) {
-    val content = remember { mutableStateOf("") }
-    val context = LocalContext.current
-    val imageUri = remember { mutableStateOf<Uri?>(null) }
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageUri.value = uri
-    }
-
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        TextField(value = content.value, onValueChange = { content.value = it }, label = { Text("Content") })
-
-        Button(onClick = { launcher.launch("image/*") }) {
-            Text("Select Image")
-        }
-
-        Button(onClick = {
-            imageUri.value?.let { uri ->
-                uploadImageToFirebaseStorage(uri, onPostUploaded, content.value, context)
-            } ?: Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
-        }) {
-            Text("Submit Post")
-        }
-    }
-}
-
-private fun uploadImageToFirebaseStorage(uri: Uri, onPostUploaded: () -> Unit, content: String, context: Context) {
-    Toast.makeText(context, "uri + $uri", Toast.LENGTH_SHORT).show()
-    val storageRef = Firebase.storage.reference.child("images/${System.currentTimeMillis()}.jpg")
-
-    storageRef.putFile(uri)
-        .addOnSuccessListener {
-            storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                val post = Post(content = content, imageUrl = downloadUri.toString())
-                Firebase.firestore.collection("posts")
-                    .add(post)
-                    .addOnSuccessListener {
-                        onPostUploaded()
-                    }
-                    .addOnFailureListener {
-                        Toast.makeText(context, "Failed to upload post ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
-                    }
-            }
-        }
-        .addOnFailureListener {
-            Toast.makeText(context, "Failed to upload image ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
-        }
-}
-
-
+//@Composable
+//fun MainApp() {
+//    val navController = rememberNavController()
+//
+//    NavHost(navController, startDestination = "postList") {
+//        composable("postList") {
+//            // Fetch posts code here
+//            PostListScreen()
+//            {
+//                navController.navigate("uploadPost")
+//            }
+//        }
+//        composable("uploadPost") {
+//            UploadPostScreen {
+//                navController.popBackStack()
+//            }
+//        }
+//    }
+//}
+//
+//@Composable
+//fun PostListScreen(onFabClick: () -> Unit) {
+//    val posts = remember { mutableStateOf<List<Post>>(emptyList()) }
+//
+//    // Fetch posts from Firebase
+//    LaunchedEffect(Unit) {
+//        val db = Firebase.firestore
+//        db.collection("posts")
+//            .orderBy("timestamp", Query.Direction.DESCENDING)
+//            .addSnapshotListener { snapshot, e ->
+//                if (e != null) {
+//                    // Handle error
+//                    return@addSnapshotListener
+//                }
+//                val fetchedPosts = snapshot?.documents?.mapNotNull { doc ->
+//                    doc.toObject(Post::class.java)?.copy(id = doc.id)
+//                } ?: emptyList()
+//                posts.value = fetchedPosts
+//            }
+//    }
+//
+//    Scaffold(
+//        floatingActionButton = {
+//            FloatingActionButton(onClick = onFabClick) {
+//                Icon(Icons.Default.Add, contentDescription = "Add Post")
+//            }
+//        }
+//    ) {
+//        LazyColumn(modifier = Modifier.padding(it)) {
+//            items(posts.value) { post ->
+//                PostItem(post)
+//            }
+//        }
+//    }
+//}
+//
+//
+//@Composable
+//fun PostItem(post: Post) {
+//    Column(modifier = Modifier.padding(16.dp)) {
+//        Text(text = post.content)
+//        if (post.imageUrl != null) {
+//            Image(
+//                painter = rememberAsyncImagePainter(post.imageUrl),
+//                contentDescription = "Post Image",
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(200.dp)
+//            )
+//        }
+//        Text(text = "Posted at: ${post.timestamp.convertMilliSecondsToDate()}")
+//    }
+//}
+//
+//@Composable
+//fun UploadPostScreen(onPostUploaded: () -> Unit) {
+//    val content = remember { mutableStateOf("") }
+//    val context = LocalContext.current
+//    val imageUri = remember { mutableStateOf<Uri?>(null) }
+//    val launcher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.GetContent()
+//    ) { uri: Uri? ->
+//        imageUri.value = uri
+//    }
+//
+//    Column(
+//        modifier = Modifier.padding(16.dp),
+//        verticalArrangement = Arrangement.spacedBy(8.dp)
+//    ) {
+//        TextField(value = content.value, onValueChange = { content.value = it }, label = { Text("Content") })
+//
+//        Button(onClick = { launcher.launch("image/*") }) {
+//            Text("Select Image")
+//        }
+//
+//        Button(onClick = {
+//            imageUri.value?.let { uri ->
+//                uploadImageToFirebaseStorage(uri, onPostUploaded, content.value, context)
+//            } ?: Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
+//        }) {
+//            Text("Submit Post")
+//        }
+//    }
+//}
+//
+//private fun uploadImageToFirebaseStorage(uri: Uri, onPostUploaded: () -> Unit, content: String, context: Context) {
+//    Toast.makeText(context, "uri + $uri", Toast.LENGTH_SHORT).show()
+//    val storageRef = Firebase.storage.reference.child("images/${System.currentTimeMillis()}.jpg")
+//
+//    storageRef.putFile(uri)
+//        .addOnSuccessListener {
+//            storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+//                val post = Post(content = content, imageUrl = downloadUri.toString())
+//                Firebase.firestore.collection("posts")
+//                    .add(post)
+//                    .addOnSuccessListener {
+//                        onPostUploaded()
+//                    }
+//                    .addOnFailureListener {
+//                        Toast.makeText(context, "Failed to upload post ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
+//                    }
+//            }
+//        }
+//        .addOnFailureListener {
+//            Toast.makeText(context, "Failed to upload image ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
+//        }
+//}
+//
+//
 
 
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun SnapBookPreview() {
     SnapBookTheme {
         MainApp()
     }
