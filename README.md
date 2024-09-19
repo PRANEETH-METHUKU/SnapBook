@@ -153,11 +153,11 @@ By using MVVM:
 - **UI Updates**: Improved user interface with additional features and more intuitive navigation.
 
 ## Screenshots
-Here is a preview of the upload screen:
+Here is a preview of the upload screen and posts screen in the app:
 
-![Upload Screen](images/create_post.png)
-![Upload Screen](images/create_post2.png)
-![Posts Screen](images/posts.png)
+<img src="images/create_post.png" alt="drawing" width="654" height="1436"/>
+<img src="images/create_post2.png" alt="drawing" width="654" height="1436"/>
+<img src="images/posts.png" alt="drawing" width="654" height="1436"/>
 
 ## Contribution
 Contributions are welcome! Please fork the repository and submit a pull request for any bug fixes or enhancements.
