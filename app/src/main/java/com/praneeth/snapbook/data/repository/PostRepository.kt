@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.praneeth.snapbook.data.model.Post
 
@@ -13,7 +14,7 @@ class PostRepository {
 
     fun getPosts(onPostsLoaded: (List<Post>) -> Unit) {
         firestore.collection("posts")
-            .orderBy("timestamp")
+            .orderBy("timestamp",Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     onPostsLoaded(emptyList())

@@ -152,6 +152,12 @@ By using MVVM:
 - **Optional Image and Data Upload**: Enhanced options for posts, making image / content optional in post, and further UI improvements for a better user experience.
 - **UI Updates**: Improved user interface with additional features and more intuitive navigation.
 
+## Screenshots
+Here is a preview of the upload screen:
+
+![Upload Screen](images/create_post.png)
+![Upload Screen](images/create_post2.png)
+![Posts Screen](images/posts.png)
 
 ## Contribution
 Contributions are welcome! Please fork the repository and submit a pull request for any bug fixes or enhancements.
