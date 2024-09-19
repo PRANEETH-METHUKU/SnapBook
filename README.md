@@ -155,9 +155,9 @@ By using MVVM:
 ## Screenshots
 Here is a preview of the upload screen and posts screen in the app:
 
-<img src="images/create_post.png" alt="drawing"  width="300"/>
-<img src="images/create_post2.png" alt="drawing"  width="300"/>
-<img src="images/posts.png" alt="drawing"  width="300"/>
+<img src="images/create_post.png" alt="drawing"  width="150"/>
+<img src="images/create_post2.png" alt="drawing"  width="150"/>
+<img src="images/posts.png" alt="drawing"  width="150"/>
 
 ## Contribution
 Contributions are welcome! Please fork the repository and submit a pull request for any bug fixes or enhancements.
